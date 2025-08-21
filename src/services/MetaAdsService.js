@@ -1,6 +1,7 @@
 
 const dotenv = require('dotenv');
 const MetricsModel = require('../models/MetricsModel');
+// Importação compatível com node-fetch v3+ em CommonJS
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 dotenv.config();
