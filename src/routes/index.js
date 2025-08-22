@@ -4,5 +4,6 @@ const { insightsByAccountController } = require('../controllers/MetricsControlle
 
 // Exemplo de rota para insights de conta
 router.get('/metrics/account/:accountId/insights', insightsByAccountController);
+router.get('/metrics/account/:accountId/:filter/insights', insightsByAccountController);
 
 module.exports = router;

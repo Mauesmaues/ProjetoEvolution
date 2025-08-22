@@ -8,15 +8,33 @@ dotenv.config();
 const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
 
 class MetaAdsService {
-  async getAccountInsights(adAccountId) {
+  async getAccountInsights(adAccountId, options = {}) {
+    const { date_preset, time_increment } = options;
 
-    const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&access_token=${ACCESS_TOKEN}`;
-    console.log('[MetaAdsService] URL chamada:', url);
+    if (date_preset){
+      let urldata = `time_range[since]=${date_preset}&time_range[until]=${time_increment}`;
+
+      if(date_preset === 'maximum'){
+        urldata = `date_preset=maximum`;
+      }
+      if(time_increment){
+        urldata = `time_range[since]=${date_preset}&time_range[until]=${time_increment}`;
+      }
+    }
+
+    if(date_preset){
+      const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&${urldata}&access_token=${ACCESS_TOKEN}`;
+    }else{
+      const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&access_token=${ACCESS_TOKEN}`;
+      console.log('[MetaAdsService] URL chamada:', url);
+    }
+
     try {
       const response = await fetch(url);
       console.log('[MetaAdsService] Status da resposta:', response.status);
       const data = await response.json();
       console.log('[MetaAdsService] Resposta da API:', JSON.stringify(data, null, 2));
+
       if (data.error) {
         console.error('[MetaAdsService] Erro retornado pela API:', data.error);
         throw new Error(JSON.stringify(data.error));
@@ -26,6 +44,7 @@ class MetaAdsService {
         console.log('[MetaAdsService] Item processado:', item);
 
         let cpr = null;
+
         if (item.cost_per_action_type) {
           const conversao = item.cost_per_action_type.find(
           (a) => a.action_type === "lead" // pode trocar para "purchase", "contact", etc
@@ -45,8 +64,11 @@ class MetaAdsService {
         });
       });
     } catch (error) {
+
       console.error('[MetaAdsService] Erro ao consultar a API da Meta:', error);
+
       throw new Error("Erro ao consultar a API da Meta: " + error.message);
+      
     }
   }
 }
