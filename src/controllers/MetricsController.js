@@ -1,5 +1,6 @@
 const metaAdsService = require('../services/MetaAdsService');
 const responseFormatter = require('../utils/responseFormatter');
+const metaAdsSaldo = require('../services/MetaAdsSaldo');
 
 // Controller → camada intermediária que liga a rota ao service
 // Responsável por:
@@ -27,4 +28,14 @@ async function insightsByAccountController(req, res, next) {
   }
 }
 
-module.exports = { insightsByAccountController };
+async function getSaldoController(req, res, next) {
+  const { accountId } = req.params;
+  try {
+    const saldo = await metaAdsSaldo.getSaldo(accountId);
+    res.json(responseFormatter.success(saldo));
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { insightsByAccountController, getSaldoController };
