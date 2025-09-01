@@ -22,11 +22,10 @@ class MetaAdsService {
       }
     }
 
+    const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&access_token=${ACCESS_TOKEN}`;
+      
     if(date_preset){
       const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&${urldata}&access_token=${ACCESS_TOKEN}`;
-    }else{
-      const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&access_token=${ACCESS_TOKEN}`;
-      console.log('[MetaAdsService] URL chamada:', url);
     }
 
     try {
