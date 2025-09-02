@@ -1,12 +1,52 @@
 const PaginaService = require("../services/PaginaService");
+const responseFormatter = require('../utils/responseFormatter');
+
 class PaginaController {
   async buscarPaginas(req, res) {
     try {
       const paginas = await PaginaService.buscarPaginas();
-      res.json(paginas);
+      res.json(responseFormatter.success(paginas));
     } catch (error) {
       console.error('[PaginaController] Erro ao buscar páginas:', error);
-      res.status(500).json({ error: 'Erro ao buscar páginas' });
+      res.status(500).json(responseFormatter.error('Erro ao buscar páginas', error.message));
+    }
+  }
+
+  async buscarFormPagina(req, res) {
+    const { id } = req.params;
+    try {
+      const paginas = await PaginaService.buscarPaginas();
+      const pagina = paginas.find(p => p.id === id);
+
+      if (!pagina) {
+        return res.status(404).json(responseFormatter.error('Página não encontrada'));
+      }
+
+      const response = await PaginaService.buscarFormPagina(id, pagina.token);
+      res.json(responseFormatter.success(response));
+    } catch(error) {
+      console.error('[PaginaController] Erro ao buscar formulários da página:', error);
+      res.status(500).json(responseFormatter.error('Erro ao buscar formulários da página', error.message));
+    }
+  }
+
+  async buscarRespostasForm(req, res) {
+    const { idPagina, idForm } = req.params;
+    try {
+      const paginas = await PaginaService.buscarPaginas();
+      const pagina = paginas.find(p => p.id === idPagina);
+
+      if (!pagina) {
+        return res.status(404).json(responseFormatter.error('Página não encontrada'));
+      }
+
+      const respostasForm = await PaginaService.buscarRespostasForm(idForm, pagina.token);
+      res.json(responseFormatter.success(respostasForm));
+    } catch(error) {
+      console.error('[PaginaController] Erro ao buscar respostas do formulário:', error);
+      res.status(500).json(responseFormatter.error('Erro ao buscar respostas do formulário', error.message));
     }
   }
 }
+
+module.exports = new PaginaController();
