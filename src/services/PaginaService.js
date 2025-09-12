@@ -7,9 +7,21 @@ const RespostasModel = require('../models/RespostasModel');
 
 dotenv.config();
 
+// Cache simples para evitar múltiplas requisições
+let paginasCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
 class PaginaService {
     async buscarPaginas() {
         try {
+            // Verifica se há cache válido
+            if (paginasCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
+                console.log('[PaginaService] Retornando páginas do cache');
+                return paginasCache;
+            }
+
+            console.log('[PaginaService] Buscando páginas da API do Facebook...');
             const response = await fetch(`https://graph.facebook.com/v20.0/me/accounts?access_token=${process.env.META_PAGINA_TOKEN}`);
             const data = await response.json();
             
@@ -18,9 +30,15 @@ class PaginaService {
             }
             
             // Mapeia cada página para uma instância de PaginaModel
-            return (data.data || []).map(pagina => {
+            const paginas = (data.data || []).map(pagina => {
                 return new PaginaModel(pagina.name, pagina.id, pagina.access_token);
             });
+
+            // Atualiza o cache
+            paginasCache = paginas;
+            cacheTimestamp = Date.now();
+            
+            return paginas;
             
         } catch (error) {
             console.error('[PaginaService] Erro ao buscar páginas:', error);

@@ -11,6 +11,6 @@ router.get('/metrics/account/:accountId/saldo', getSaldoController);
 // Novas rotas para páginas
 router.get('/paginas', PaginaController.buscarPaginas);
 router.get('/paginas/:id/forms', PaginaController.buscarFormPagina);
-router.get('/paginas/:idPagina/forms/:idForm/respostas', PaginaController.buscarRespostasForm);
+router.get('/paginas/:idPagina/respostas', PaginaController.buscarRespostasForm);
 
 module.exports = router;

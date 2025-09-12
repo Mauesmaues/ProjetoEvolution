@@ -17,3 +17,5 @@ class PaginaModel{
     return this.id;
   }
 }
+
+module.exports = PaginaModel;

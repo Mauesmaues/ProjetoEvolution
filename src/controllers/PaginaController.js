@@ -31,7 +31,7 @@ class PaginaController {
   }
 
   async buscarRespostasForm(req, res) {
-    const { idPagina, idForm } = req.params;
+    const { idPagina } = req.params;
     try {
       const paginas = await PaginaService.buscarPaginas();
       const pagina = paginas.find(p => p.id === idPagina);
@@ -40,8 +40,24 @@ class PaginaController {
         return res.status(404).json(responseFormatter.error('Página não encontrada'));
       }
 
-      const respostasForm = await PaginaService.buscarRespostasForm(idForm, pagina.token);
-      res.json(responseFormatter.success(respostasForm));
+      // Busca todos os formulários da página
+      const formularios = await PaginaService.buscarFormPagina(pagina.id, pagina.token);
+      
+      if (!formularios || formularios.length === 0) {
+        return res.status(404).json(responseFormatter.error('Nenhum formulário encontrado para esta página'));
+      }
+
+      // Busca respostas de todos os formulários
+      const todasRespostas = [];
+      for (const form of formularios) {
+        const respostas = await PaginaService.buscarRespostasForm(form.id, pagina.token);
+        todasRespostas.push({
+          formulario: form,
+          respostas: respostas
+        });
+      }
+
+      res.json(responseFormatter.success(todasRespostas));
     } catch(error) {
       console.error('[PaginaController] Erro ao buscar respostas do formulário:', error);
       res.status(500).json(responseFormatter.error('Erro ao buscar respostas do formulário', error.message));
