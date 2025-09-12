@@ -11,22 +11,24 @@ class MetaAdsService {
   async getAccountInsights(adAccountId, options = {}) {
     const { date_preset, time_increment } = options;
 
-    if (date_preset){
-      let urldata = `time_range[since]=${date_preset}&time_range[until]=${time_increment}`;
+    let url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type`;
 
-      if(date_preset === 'maximum'){
-        urldata = `date_preset=maximum`;
-      }
-      if(time_increment){
-        urldata = `time_range[since]=${date_preset}&time_range[until]=${time_increment}`;
+    // Adiciona filtros de data se fornecidos
+    if (date_preset) {
+      if (date_preset === 'maximum') {
+        url += `&date_preset=maximum`;
+      } else if (time_increment) {
+        // Formato correto para time_range
+        const timeRange = JSON.stringify({
+          since: date_preset,
+          until: time_increment
+        });
+        url += `&time_range=${encodeURIComponent(timeRange)}`;
       }
     }
 
-    const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&access_token=${ACCESS_TOKEN}`;
-      
-    if(date_preset){
-      const url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type&${urldata}&access_token=${ACCESS_TOKEN}`;
-    }
+    url += `&access_token=${ACCESS_TOKEN}`;
+    console.log('[MetaAdsService] URL chamada:', url);
 
     try {
       const response = await fetch(url);

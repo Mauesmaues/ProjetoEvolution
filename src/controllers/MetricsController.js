@@ -13,8 +13,16 @@ async function insightsByAccountController(req, res, next) {
     let insights;
     
     if(filter){
-      const [date_preset, time_increment] = filter.split(',');
-      insights = await metaAdsService.getAccountInsights(accountId, { date_preset, time_increment });
+      // Para filtros como "2024-01-01,2024-01-31" ou "maximum"
+      if(filter === 'maximum'){
+        insights = await metaAdsService.getAccountInsights(accountId, { date_preset: 'maximum' });
+      } else {
+        const [dateStart, dateEnd] = filter.split(',');
+        insights = await metaAdsService.getAccountInsights(accountId, { 
+          date_preset: dateStart, 
+          time_increment: dateEnd 
+        });
+      }
     }else{
       insights = await metaAdsService.getAccountInsights(accountId);
     }
@@ -22,9 +30,7 @@ async function insightsByAccountController(req, res, next) {
     res.json(responseFormatter.success(insights));
 
   } catch (error) {
-
     next(error);
-    
   }
 }
 
@@ -37,5 +43,7 @@ async function getSaldoController(req, res, next) {
     next(error);
   }
 }
+
+
 
 module.exports = { insightsByAccountController, getSaldoController };
