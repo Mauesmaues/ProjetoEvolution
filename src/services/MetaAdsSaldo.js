@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 const SaldoModel = require('../models/SaldoModel');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const fetch = require('../utils/httpClient');
 
 dotenv.config();
 const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;

@@ -4,8 +4,26 @@ const responseFormatter = require('../utils/responseFormatter');
 class PaginaController {
   async buscarPaginas(req, res) {
     try {
-      const paginas = await PaginaService.buscarPaginas();
-      res.json(responseFormatter.success(paginas));
+      const { page = 1, limit = 10 } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      
+      const todasPaginas = await PaginaService.buscarPaginas();
+      const totalItens = todasPaginas.length;
+      const paginasFiltradas = todasPaginas.slice(offset, offset + parseInt(limit));
+      
+      const resultado = {
+        data: paginasFiltradas,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: totalItens,
+          totalPages: Math.ceil(totalItens / parseInt(limit)),
+          hasNext: offset + parseInt(limit) < totalItens,
+          hasPrev: parseInt(page) > 1
+        }
+      };
+      
+      res.json(responseFormatter.success(resultado));
     } catch (error) {
       console.error('[PaginaController] Erro ao buscar páginas:', error);
       res.status(500).json(responseFormatter.error('Erro ao buscar páginas', error.message));

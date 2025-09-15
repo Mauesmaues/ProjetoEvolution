@@ -1,14 +1,41 @@
 
 const dotenv = require('dotenv');
 const MetricsModel = require('../models/MetricsModel');
-// Importação compatível com node-fetch v3+ em CommonJS
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+// Cliente HTTP otimizado
+const fetch = require('../utils/httpClient');
 
 dotenv.config();
 const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
 
+// Cache simples para evitar requisições repetitivas
+const cache = new Map();
+const cacheExpiry = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
 class MetaAdsService {
+  getCacheKey(adAccountId, options = {}) {
+    return `insights_${adAccountId}_${JSON.stringify(options)}`;
+  }
+
+  isCacheValid(key) {
+    return cache.has(key) && cacheExpiry.get(key) > Date.now();
+  }
+
+  setCache(key, data) {
+    cache.set(key, data);
+    cacheExpiry.set(key, Date.now() + CACHE_DURATION);
+  }
+
   async getAccountInsights(adAccountId, options = {}) {
+    const cacheKey = this.getCacheKey(adAccountId, options);
+    
+    // Verifica cache primeiro
+    if (this.isCacheValid(cacheKey)) {
+      console.log('[MetaAdsService] Retornando do cache:', cacheKey);
+      return cache.get(cacheKey);
+    }
+
+    console.log('[MetaAdsService] Fazendo nova requisição para API do Facebook');
     const { date_preset, time_increment } = options;
 
     let url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type`;
@@ -41,7 +68,7 @@ class MetaAdsService {
         throw new Error(JSON.stringify(data.error));
       }
       // Transforma cada item do array em uma instância de MetricsModel
-      return (data.data || []).map(item => {
+      const result = (data.data || []).map(item => {
         console.log('[MetaAdsService] Item processado:', item);
 
         let cpr = null;
@@ -64,6 +91,12 @@ class MetaAdsService {
           cpr: cpr // pode ser array, adaptar conforme necessário
         });
       });
+
+      // Salva no cache
+      this.setCache(cacheKey, result);
+      console.log('[MetaAdsService] Resultado salvo no cache');
+      
+      return result;
     } catch (error) {
 
       console.error('[MetaAdsService] Erro ao consultar a API da Meta:', error);
