@@ -38,7 +38,7 @@ class MetaAdsService {
     console.log('[MetaAdsService] Fazendo nova requisição para API do Facebook');
     const { date_preset, time_increment } = options;
 
-    let url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,cost_per_action_type`;
+    let url = `https://graph.facebook.com/v20.0/act_${adAccountId}/insights?fields=impressions,clicks,reach,spend,ctr,cpc,actions`;
 
     // Adiciona filtros de data se fornecidos
     if (date_preset) {
@@ -73,13 +73,14 @@ class MetaAdsService {
 
         let cpr = null;
 
-        if (item.cost_per_action_type) {
-          const conversao = item.cost_per_action_type.find(
-          (a) => a.action_type === "lead" // pode trocar para "purchase", "contact", etc
+        if (item.actions) {
+          const conversao = item.actions.find(
+          (a) => a.action_type === "lead" || a.action_type === "onsite_conversion.total_messaging_connection"// pode trocar para "purchase", "contact", etc
         );
           if (conversao) cpr = conversao.value;
         }
         
+        console.log('[MetaAdsService] CPR calculado:', cpr);
         return new MetricsModel({
           id: item.id,
           cliques: item.clicks,
