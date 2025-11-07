@@ -109,6 +109,3 @@ dist/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-
-# Google Service Account Credentials
-src/config/google-service-account.json
